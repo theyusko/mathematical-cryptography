@@ -1,4 +1,4 @@
-# mathematical-cryptography# mathematical-cryptography
+# mathematical-cryptography
 
 Chapter 2: Discrete Logarithms
 and Diffie–Hellman
