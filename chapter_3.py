@@ -19,15 +19,18 @@ def rsa_create_key(digits=309, p=None, q=None, e=65537):
             p = rand_prime(lenp)
             q = rand_prime(digits - lenp)
         else:
-            p = rand_prime(digits - len(q))
+            p = rand_prime(digits - len(str(q)))
     elif q is None:
-        q = rand_prime(digits - len(p))
+        q = rand_prime(digits - len(str(p)))
 
     # For RSA to be secure d >= N^(1/4), therefore e < N^(3/4)
     # if N is relatively large 2^16 + 1 = 65537 is good enough for e
-    if e == 65537 and e >= (p-1)*(q-1):
-        lenpq = ceil(len((p-1)*(q-1)) / 4)
-        e = rand_prime(lenpq - 1) # e < N^(1/4)
+    if gcd(e, (p-1)*(q-1)) != 1 or ( e == 65537 and e >= (p-1)*(q-1) ):
+        lenpq = ceil(len(str((p-1)*(q-1))) / 4)
+        for i in range(1, 10 ** lenpq):
+            if gcd(2*i+1, (p-1)*(q-1)) == 1:
+                break;
+        e = 2*i + 1
 
     return p, q, e
 
@@ -39,14 +42,18 @@ def rsa_encrypt(m, N, e):
     :param e: public exponentiation key
     :return: ciphertext
     """
-    return (m**e) % N
+    return pow(m, e, N)
 
 
 def rsa_decrypt(c, p, q, e):
-    phi = euler_phi((p-1)*(q-1))
-
-    d = pow(e, phi-1, (p-1)*(q-1))
-
+    """
+    :param c: ciphertext
+    :param p: prime
+    :param q: prime
+    :param e: public exponentiation key
+    :return: plaintext
+    """
+    d = pow(e, -1, (p-1)*(q-1))
     return pow(c, d, p*q)
 
 
@@ -113,8 +120,3 @@ def rand_prime(digits=309):
             p += 1
 
     return p
-
-
-
-p,q,e = rsa_create_key(309,None,None,3)
-print("p:"+ str(p) + "\tq:" + str(q) + "\te:" + str(e))
