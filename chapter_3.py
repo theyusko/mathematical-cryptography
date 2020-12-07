@@ -121,6 +121,13 @@ def pollards_factorization(N, a=2, bound=100):
     return False  # Couldn't factorize for given a & bound
 
 
+def difference_of_squares_factorization():
+    #TODO
+    return
+
+
+#TODO Quadratic Sieve for finding B-smooth numbers (that have all factors <=B)
+
 def babystep_giantstep(g, h, p):
     """
     :param p: prime
