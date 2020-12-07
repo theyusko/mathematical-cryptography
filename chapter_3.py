@@ -3,6 +3,21 @@ from sage.all import is_prime, euler_phi
 from random import randint
 
 
+def rand_prime(digits=309):
+    """
+    :param digits: number of bits the prime should have
+    :return: a prime
+    """
+
+    p = 0
+    while is_prime(p) is False:  # Primality can also be checked with Rabin Miller test
+        p = randint(10 ** (digits-1), 10 ** digits)
+        if p % 2 == 0:
+            p += 1
+
+    return p
+
+
 def rsa_create_key(digits=309, p=None, q=None, e=65537):
     """
     :param digits: Digits of modulus N in RSA PKC
@@ -25,11 +40,11 @@ def rsa_create_key(digits=309, p=None, q=None, e=65537):
 
     # For RSA to be secure d >= N^(1/4), therefore e < N^(3/4)
     # if N is relatively large 2^16 + 1 = 65537 is good enough for e
-    if gcd(e, (p-1)*(q-1)) != 1 or ( e == 65537 and e >= (p-1)*(q-1) ):
-        lenpq = ceil(len(str((p-1)*(q-1))) / 4)
+    if gcd(e, (p - 1) * (q - 1)) != 1 or (e == 65537 and e >= (p - 1) * (q - 1)):
+        lenpq = ceil(len(str((p - 1) * (q - 1))) / 4)
         for i in range(1, 10 ** lenpq):
-            if gcd(2*i+1, (p-1)*(q-1)) == 1:
-                break;
+            if gcd(2*i + 1, (p - 1) * (q - 1)) == 1:
+                break
         e = 2*i + 1
 
     return p, q, e
@@ -57,30 +72,13 @@ def rsa_decrypt(c, p, q, e):
     return pow(c, d, p*q)
 
 
-def babystep_giantstep(g, h, p):
-    """
-    :param p: prime
-    Solves g^x = h (modulo p).
-    :return: x
-    """
-    # TODO: check if works with p not prime
-
-    n = 1 + floor(sqrt(p-1))
-
-    pows = {i: pow(g, i, p) for i in range(n+1)}  # create dict {e,g,g^2,...,g^n}
-    pows2 = {j: ((h * pow(g, -n*j)) % p) for j in range(n+1)}  # create dict {h, h*g^(-n), h*g^(-2n),.. h*g^(-n^2)}
-
-    # Find a match between two dicts
-    for i,val in pows.items():
-        for j, val2 in pows2.items():
-            if val == val2:
-                return i+j*n
-
-    return None
-
-
 def miller_rabin(a, n):
-    # Checks if 'a' is a Miller-Rabin witness for compositeness of 'n'
+    """
+    :param a: witness candidate
+    :param n: prime candidate
+    :return: if a is a Miller-Rabin witness for compositeness of n
+    """
+
     # TODO: Check if this works correctly
     if n == 2:
         return False
@@ -107,16 +105,40 @@ def miller_rabin(a, n):
     return True
 
 
-def rand_prime(digits=309):
+def pollards_factorization(N, a=2, bound=100):
     """
-    :param digits: number of bits the prime should have
-    :return: a prime
+    :param N: integer to be factored, where N=p*q for primes p & q
+    :param a: some convenient integer to expontiate
+    :param bound: bound of exponentiation
+    :return: a factor of N
     """
+    for j in range(1, bound):
+        a = pow(a, j, N)
+        d = gcd(a-1, N)
+        if 1 < d < N:
+            return d
 
-    p = 0
-    while is_prime(p) is False:  # Primality can also be checked with Rabin Miller test
-        p = randint(10 ** (digits-1), 10 ** digits)
-        if p % 2 == 0:
-            p += 1
+    return False  # Couldn't factorize for given a & bound
 
-    return p
+
+def babystep_giantstep(g, h, p):
+    """
+    :param p: prime
+    :return: x, solution of g^x = h (modulo p).
+    """
+    # TODO: check if works with p not prime
+
+    n = 1 + floor(sqrt(p-1))
+
+    pows = {i: pow(g, i, p) for i in range(n+1)}  # create dict {e,g,g^2,...,g^n}
+    pows2 = {j: ((h * pow(g, -n*j)) % p) for j in range(n+1)}  # create dict {h, h*g^(-n), h*g^(-2n),.. h*g^(-n^2)}
+
+    # Find a match between two dicts
+    for i,val in pows.items():
+        for j, val2 in pows2.items():
+            if val == val2:
+                return i+j*n
+
+    return None
+
+
