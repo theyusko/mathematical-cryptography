@@ -1,4 +1,4 @@
-from math import ceil, floor, sqrt, gcd
+from math import ceil, floor, sqrt, gcd, exp, log
 from sage.all import is_prime, euler_phi
 from random import randint
 
@@ -116,17 +116,57 @@ def pollards_factorization(N, a=2, bound=100):
         a = pow(a, j, N)
         d = gcd(a-1, N)
         if 1 < d < N:
-            return d
+            return [d, N/d]
 
-    return False  # Couldn't factorize for given a & bound
-
-
-def difference_of_squares_factorization():
-    #TODO
-    return
+    return [N]  # Couldn't factorize for given a & bound
 
 
-#TODO Quadratic Sieve for finding B-smooth numbers (that have all factors <=B)
+def difference_of_squares_factorization(N):
+    """
+    Directly from https://www.geeksforgeeks.org/fermats-factorization-method/
+    :param N: the number to be factored
+    :return: factors of N
+    """
+    # L = exp(sqrt(log(N) * log(log(N))))
+    # bsmooth_numbers(L)
+
+
+    # since fermat's factorization applicable
+    # for odd positive integers only
+    if(N<= 0):
+        return [N]
+
+    # check if n is a even number
+    if(N & 1) == 0:
+        return [N / 2, 2]
+
+    a = ceil(sqrt(N))
+
+    #if n is a perfect root,
+    #then both its square roots are its factors
+    if a * a == N:
+        return [a, a]
+
+    while True:
+        b1 = a * a - N
+        b = int(sqrt(b1))
+        if b * b == b1:
+            break
+        else:
+            a += 1
+    return [a-b, a + b]
+
+
+# def bsmooth_numbers(b):
+#     """
+#     :param b: the largest prime factor a number can have
+#     :return: a list of b smooth numbers
+#     """
+#     nums = 0
+#
+#
+#     return nums
+
 
 def babystep_giantstep(g, h, p):
     """
